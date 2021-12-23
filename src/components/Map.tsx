@@ -5,14 +5,19 @@ import { LoadingScreen } from '../screens/LoadingScreen'
 import { Fab } from './Fab'
 
 export const Map = () => {
-  const { hasLocation, initialPosition, userLocation, getCurrentPosition, followUserLocation } = useLocation()
+  const { hasLocation, initialPosition, userLocation, getCurrentPosition, followUserLocation, stopFollowUserLocation } = useLocation()
   const mapViewRef = useRef<MapView>()
+  const following = useRef(true)
 
   useEffect(() => {
     followUserLocation()
+    return () => {
+      stopFollowUserLocation()
+    }
   }, [])
 
   useEffect(() => {
+    if(!following.current) return
     mapViewRef.current?.animateCamera({
       center: userLocation
     })
@@ -24,6 +29,7 @@ export const Map = () => {
 
   const centerCamera = async () => {
     const location = await getCurrentPosition()
+    following.current = true
     mapViewRef.current?.animateCamera({
       center: location
     })
@@ -41,6 +47,7 @@ export const Map = () => {
           longitudeDelta: 0.0421,
         }}
         showsUserLocation
+        onTouchStart={() => following.current = false}
       >
         {/* <Marker
           image={require('../assets/custom-marker.png')}
